@@ -1,0 +1,6 @@
+*.properties
+rsakey*
+venv/
+.idea/
+**/__pycache__
+tmp_*.sql
