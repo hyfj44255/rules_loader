@@ -47,9 +47,10 @@ WHERE
   AND u.STATUS = 'Active'
   and ac.MPP_NUM is not null
   GROUP BY  ac.MPP_NUM,--UP.PRODUCT_ID,
-  U.EMPLOYEE_CNUM,Ac.landed_country --,UP.PRODUCT_LEVEL;
- ))
+  U.EMPLOYEE_CNUM,Ac.landed_country))
+ --,UP.PRODUCT_LEVEL;
 WHERE mpp_num IS not NULL
 AND mpp_num <>''
 AND country <>''
+fetch first 100 rows only
 with ur;

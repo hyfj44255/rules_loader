@@ -31,4 +31,6 @@ WHERE
   t1.LEVEL = 30
   AND t1.DELETED = 0
   AND t1.ACTIVITY_STATUS = 'Active'
-  AND t1.TYPE = 'product';
+  AND t1.TYPE = 'product'
+  fetch first 100 rows only
+  with ur;

@@ -1,2 +1,2 @@
-import from "${workingDir}/../csvs/usrPrdctRel.csv" of del  METHOD P ( 1,2,3 ) commitcount 10000 messages "${workingDir}/../logs/impUsrPrdctRel_db2.log" INSERT into CMRDC.USER_PRODUCT_REL (USER_CNUM ,PRODUCT_ID ,PRODUCT_LEVEL);
+import from "${workingDir}/../csvs/usrPrdctRel.csv" of del  METHOD P ( 1,2,3 ) commitcount 10000 messages "${workingDir}/../logs/impUsrPrdctRel_db2.log" INSERT into CMRDC.${user_product} (USER_CNUM ,PRODUCT_ID ,PRODUCT_LEVEL);
 --import from "${workingDir}/productsData.csv" of del  METHOD P ( 1,2,3,4,5,6 ) messages "${workingDir}/impProductCsv_db2.log" INSERT into SCTID.PRODUCTS_IMAGE (NAME ,LEV30 ,LEV20 ,LEV17 ,LEV15 ,LEV10);

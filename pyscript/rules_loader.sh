@@ -54,6 +54,7 @@ function sql2TmpSql
         command=$command${paraKey[$i]}"}/"${paraVal[$i]}'/g'"'"
     done
     command=$command' > '${sqlPath}'tmp_'${sourceSql}
+    echo $command
     eval $command
 }
 
@@ -77,27 +78,34 @@ function generateTmpSql
     para3key=('stagingTable' 'rulesDataTable')
     para3val=($containStaging $containData)
 
-    para4key=('stagingTable')
-    para4val=($containStaging)
+    para4key=('user_account','user_product')
+    para4val=($user_account $user_product)
+
+    para5key=('workingDir' 'user_account' 'user_product')
+    para5val=($spDir $user_account $user_product)
+
 
 
     #smrTmpSql
     sql2TmpSql 'smr2CmrPrdct.sql' "${para1key[*]}" "${para1val[*]}"
-    sql2TmpSql 'getProduct.sql' "${para1key[*]}" "${para1val[*]}" #productTmpSql
 
-    sql2TmpSql 'getUsrAccountRel.sql' "${para1key[*]}" "${para1val[*]}" #new
-    sql2TmpSql 'getUsrPrdctRel.sql' "${para1key[*]}" "${para1val[*]}" #new
+    sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"    sql2TmpSql 'getProduct.sql' "${para1key[*]}" "${para1val[*]}" #productTmpSql
+
+    sql2TmpSql 'getUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
+    sql2TmpSql 'getUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
 
     sql2TmpSql 'impProduct.sql' "${para1key[*]}" "${para1val[*]}" #impProductTmpSql
 
-    sql2TmpSql 'impUsrAccountRel.sql' "${para1key[*]}" "${para1val[*]}" #new
-    sql2TmpSql 'impUsrPrdctRel.sql' "${para1key[*]}" "${para1val[*]}" #new
+    sql2TmpSql 'impUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
+    sql2TmpSql 'impUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
 
     sql2TmpSql 'impSmr2CmrPrdct.sql' "${para2key[*]}" "${para2val[*]}" #impSmrTmpSql
     sql2TmpSql 'ins2Differ.sql' "${para3key[*]}" "${para3val[*]}" #diffTmpSql
     sql2TmpSql 'smrImpFailed.sql' "${para4key[*]}" "${para4val[*]}" #impSmrFailTmpSql
     sql2TmpSql 'space4StagePrdct.sql' "${para4key[*]}" "${para4val[*]}" #space4StagePrdct
     sql2TmpSql 'impPrductFailed.sql' #impPdctFailTmpSql
+
+    sql2TmpSql 'impUsrAccountFailed.sql' "${para4key[*]}" "${para4val[*]}"
 }
 
 function dbExecCommand
@@ -165,18 +173,27 @@ needUncataDbAlia=0 #$needUncataDbAlia
 needUncataDbNode=0 #$needUncataDbNode
 
 if [[ $tablesPhases == 0 ]]; then
+    user_account='USER_ACCOUNT_REL1'
+    user_product='USER_PRODUCT_REL1'
+
     containStaging='RULES_DATA_STAGING'
     containData='RULES_DATA'
     containSS='RULES_DATA_SS'
 fi
 
 if [[ $tablesPhases == 1 ]]; then
+    user_account='USER_ACCOUNT_REL2'
+    user_product='USER_PRODUCT_REL2'
+
     containStaging='RULES_DATA_SS'
     containData='RULES_DATA_STAGING'
     containSS='RULES_DATA'
 fi
 
 if [[ $tablesPhases == 2 ]]; then
+    user_account='USER_ACCOUNT_REL3'
+    user_product='USER_PRODUCT_REL3'
+
     containStaging='RULES_DATA'
     containData='RULES_DATA_SS'
     containSS='RULES_DATA_STAGING'
@@ -246,6 +263,8 @@ importProductLocal="db2 -tvf "${sqlPath}"tmp_impProduct.sql"
 impUsrAccountRel="db2 -tvf "${sqlPath}"tmp_impUsrAccountRel.sql" #new
 impUsrPrdctRel="db2 -tvf "${sqlPath}"tmp_impUsrPrdctRel.sql" #new
 
+impUsrAccountFail="db2 -tvf "${sqlPath}"tmp_impUsrAccountFailed.sql > "${logsPath}"impUsrAccountFailed.log"
+impUsrPrdctFail="db2 -tvf "${sqlPath}"tmp_impUsrPrdctFailed.sql > "${logsPath}"impUsrPrdctFailed.log"
 
 $conn2RemoteDb
 if [[ $? -ne 0 ]]; then
@@ -261,16 +280,16 @@ fi
 #if [[ $? -ne 0 ]]; then
 #    sendMessageAndExit 'getUsrPrdctRelData failed'
 #fi
-#
+
 #execCommand 'usrAccountRelData' "${usrAccountRelData}"
 #if [[ $? -ne 0 ]]; then
 #    sendMessageAndExit 'getUsrAccountRelData failed'
 #fi
 
- execCommand 'getSmr' "${getSmr}"
- if [[ $? -ne 0 ]]; then
-     sendMessageAndExit 'getSmr failed'
- fi
+# execCommand 'getSmr' "${getSmr}"
+# if [[ $? -ne 0 ]]; then
+#     sendMessageAndExit 'getSmr failed'
+# fi
 # echo $conn2OurDb2
 $conn2OurDb2
 if [[ $? -ne 0 ]]; then
@@ -281,26 +300,28 @@ execCommand 'makeSpace' "${makeSpace}"
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'makeSpace failed'
 fi
- execCommand 'impSourceCSVLocal' "${impSourceCSVLocal}"
- if [[ $? -ne 0 ]]; then
-     execCommand 'cleanRDTable' "${smrImpFail}"
-     sendMessageAndExit 'impSmrCSV failed'
- fi
+#execCommand 'impSourceCSVLocal' "${impSourceCSVLocal}"
+#if [[ $? -ne 0 ]]; then
+# execCommand 'cleanRDTable' "${smrImpFail}"
+# sendMessageAndExit 'impSmrCSV failed'
+#fi
 execCommand 'importProductLocal' "${importProductLocal}"
 if [[ $? -ne 0 ]]; then
     execCommand 'cleanProductTable' "${impPrdctFaild}"
     sendMessageAndExit 'importProductLocal failed'
 fi
 
-#execCommand 'impUsrAccountRel' "${impUsrAccountRel}"
-#if [[ $? -ne 0 ]]; then
-#    sendMessageAndExit 'impUsrAccountRel failed'
-#fi
-#
-#execCommand 'impUsrPrdctRel' "${impUsrPrdctRel}"
-#if [[ $? -ne 0 ]]; then
-#    sendMessageAndExit 'impUsrPrdctRel failed'
-#fi
+execCommand 'impUsrAccountRel' "${impUsrAccountRel}"
+if [[ $? -ne 0 ]]; then
+    execCommand 'cleanUsrAccountTable' "${impUsrAccountFail}"
+    sendMessageAndExit 'impUsrAccountRel failed'
+fi
+
+execCommand 'impUsrPrdctRel' "${impUsrPrdctRel}"
+if [[ $? -ne 0 ]]; then
+    execCommand 'cleanUsrPrdctTable' "${impUsrPrdctFail}"
+    sendMessageAndExit 'impUsrPrdctRel failed'
+fi
 
 # eval $makeSpace
 # eval $impSourceCSVLocal
