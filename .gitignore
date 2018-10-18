@@ -1,6 +1,6 @@
-*.properties
-rsakey*
 venv/
 .idea/
-**/__pycache__
+rsakey*
 tmp_*.sql
+*.properties
+**/__pycache__

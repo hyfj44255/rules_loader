@@ -8,7 +8,7 @@ SELECT
   --sctid.newguid,
   ac.MPP_NUM AS MPP_NUM,-- account not mpp_num
 --  CASE
---    WHEN product_id IS NULL THEN '*'
+--    WHEN product_id IS NULL THEN '_ALL_'
 --    ELSE UP.PRODUCT_ID
 --  END Product_ID,
   U.EMPLOYEE_CNUM AS User_CNUM,

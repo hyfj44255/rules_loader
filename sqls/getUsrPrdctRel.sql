@@ -1,5 +1,6 @@
 export to "${workingDir}/../csvs/usrPrdctRel.csv" of del messages "${workingDir}/../logs/getUsrPrdctRel_db2.log"
-SELECT USER_ID AS USER_ID,
+SELECT
+--USER_ID AS USER_ID,
 (SELECT EMPLOYEE_CNUM FROM SCTID.USERS WHERE ID=user_ID AND DELETED=0) AS user_CNUM,
 PRODUCT_ID AS PRODUCT_ID,
 PRODUCT_LEVEL AS PRODUCT_LEVEL
