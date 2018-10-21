@@ -49,12 +49,12 @@ function sql2TmpSql
     paraVal=$3
     paraVal=(${paraVal// / })
     command="cat "${sqlPath}${sourceSql}
+
     for((i=0;i<${#paraKey[@]};i++)); do #${paraKey[$i]}
         command=$command' | sed '"'"'s/${'
         command=$command${paraKey[$i]}"}/"${paraVal[$i]}'/g'"'"
     done
     command=$command' > '${sqlPath}'tmp_'${sourceSql}
-    echo $command
     eval $command
 }
 
@@ -78,7 +78,7 @@ function generateTmpSql
     para3key=('stagingTable' 'rulesDataTable')
     para3val=($containStaging $containData)
 
-    para4key=('user_account','user_product')
+    para4key=('user_account' 'user_product')
     para4val=($user_account $user_product)
 
     para5key=('workingDir' 'user_account' 'user_product')
@@ -89,7 +89,8 @@ function generateTmpSql
     #smrTmpSql
     sql2TmpSql 'smr2CmrPrdct.sql' "${para1key[*]}" "${para1val[*]}"
 
-    sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"    sql2TmpSql 'getProduct.sql' "${para1key[*]}" "${para1val[*]}" #productTmpSql
+    sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"
+    sql2TmpSql 'getProduct.sql' "${para1key[*]}" "${para1val[*]}" #productTmpSql
 
     sql2TmpSql 'getUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
     sql2TmpSql 'getUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
@@ -276,21 +277,22 @@ if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getProductsData failed'
 fi
 
-#execCommand 'usrPrdctRelData' "${usrPrdctRelData}"
-#if [[ $? -ne 0 ]]; then
-#    sendMessageAndExit 'getUsrPrdctRelData failed'
-#fi
+execCommand 'usrPrdctRelData' "${usrPrdctRelData}"
+if [[ $? -ne 0 ]]; then
+    sendMessageAndExit 'getUsrPrdctRelData failed'
+fi
 
-#execCommand 'usrAccountRelData' "${usrAccountRelData}"
-#if [[ $? -ne 0 ]]; then
-#    sendMessageAndExit 'getUsrAccountRelData failed'
-#fi
+execCommand 'usrAccountRelData' "${usrAccountRelData}"
+if [[ $? -ne 0 ]]; then
+    sendMessageAndExit 'getUsrAccountRelData failed'
+fi
 
 # execCommand 'getSmr' "${getSmr}"
 # if [[ $? -ne 0 ]]; then
 #     sendMessageAndExit 'getSmr failed'
 # fi
 # echo $conn2OurDb2
+
 $conn2OurDb2
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'conn2OurDb2 failed'
@@ -323,9 +325,6 @@ if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'impUsrPrdctRel failed'
 fi
 
-# eval $makeSpace
-# eval $impSourceCSVLocal
-# eval $importProductLocal
 if [[ $tablesPhases = 2 ]]; then
     tablesPhases=0
 else

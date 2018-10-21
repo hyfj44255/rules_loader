@@ -36,5 +36,4 @@ AND  ac.mpp_num IS not NULL
 AND ac.mpp_num <>''
 AND ac.landed_country <>''
 )
-fetch first 100 rows only
 WITH ur;

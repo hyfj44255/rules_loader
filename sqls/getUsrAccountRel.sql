@@ -52,5 +52,4 @@ WHERE
 WHERE mpp_num IS not NULL
 AND mpp_num <>''
 AND country <>''
-fetch first 100 rows only
 with ur;
