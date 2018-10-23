@@ -1,2 +1,2 @@
-import from "${workingDir}/../csvs/productsData.csv" of del  METHOD P ( 1,2,3,4,5,6 ) messages "${workingDir}/../logs/impProductCsv_db2.log" INSERT into CMRDC.PRODUCTS_IMAGE (NAME ,LEV30 ,LEV20 ,LEV17 ,LEV15 ,LEV10);
+import from "${workingDir}/../csvs/productsData.csv" of del  METHOD P ( 1,2,3,4,5,6 ) messages "${workingDir}/../logs/impProductCsv_db2.log" INSERT into CMRDC.${product_image} (NAME ,LEV30 ,LEV20 ,LEV17 ,LEV15 ,LEV10);
 --import from "${workingDir}/productsData.csv" of del  METHOD P ( 1,2,3,4,5,6 ) messages "${workingDir}/impProductCsv_db2.log" INSERT into SCTID.PRODUCTS_IMAGE (NAME ,LEV30 ,LEV20 ,LEV17 ,LEV15 ,LEV10);

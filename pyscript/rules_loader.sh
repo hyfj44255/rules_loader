@@ -78,24 +78,26 @@ function generateTmpSql
     para3key=('stagingTable' 'rulesDataTable')
     para3val=($containStaging $containData)
 
-    para4key=('user_account' 'user_product')
-    para4val=($user_account $user_product)
+    para4key=('user_account' 'user_product' 'product_image')
+    para4val=($user_account $user_product $product_image)
 
     para5key=('workingDir' 'user_account' 'user_product')
     para5val=($spDir $user_account $user_product)
 
-
+    para6key=('workingDir' 'product_image')
+    para6val=($spDir $product_image)
 
     #smrTmpSql
     sql2TmpSql 'smr2CmrPrdct.sql' "${para1key[*]}" "${para1val[*]}"
 
     sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"
-    sql2TmpSql 'getProduct.sql' "${para1key[*]}" "${para1val[*]}" #productTmpSql
+    sql2TmpSql 'getProduct.sql' "${para6key[*]}" "${para6val[*]}" #productTmpSql
+    sql2TmpSql 'impProduct.sql' "${para6key[*]}" "${para6val[*]}" #impProductTmpSql
+	sql2TmpSql 'impPrductFailed.sql' "${para6key[*]}" "${para6val[*]}" #impPrductFailed
 
     sql2TmpSql 'getUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
     sql2TmpSql 'getUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
 
-    sql2TmpSql 'impProduct.sql' "${para1key[*]}" "${para1val[*]}" #impProductTmpSql
 
     sql2TmpSql 'impUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
     sql2TmpSql 'impUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
@@ -104,9 +106,10 @@ function generateTmpSql
     sql2TmpSql 'ins2Differ.sql' "${para3key[*]}" "${para3val[*]}" #diffTmpSql
     sql2TmpSql 'smrImpFailed.sql' "${para4key[*]}" "${para4val[*]}" #impSmrFailTmpSql
     sql2TmpSql 'space4StagePrdct.sql' "${para4key[*]}" "${para4val[*]}" #space4StagePrdct
-    sql2TmpSql 'impPrductFailed.sql' #impPdctFailTmpSql
 
     sql2TmpSql 'impUsrAccountFailed.sql' "${para4key[*]}" "${para4val[*]}"
+
+    sql2TmpSql 'getDcCmrCcms.sql' "${para1key[*]}" "${para1val[*]}"
 }
 
 function dbExecCommand
@@ -130,8 +133,10 @@ function ReadINIfile
     SECTION=$2
     ITEM=$3
     ReadINI=`awk -F '=' '/\['$SECTION'\]/{a=1}a==1&&$1~/'$ITEM'/{print $2;exit}' $INIFILE`
-    tablesPhases=$ReadINI
-    export tablesPhases
+    statement=$ITEM'='$ReadINI
+    eval ${statement}
+    statement='export '$ITEM
+    eval ${statement}
 }
 
 # ./ini.sh ./../dbDriver.properties [1] tablesPhases
@@ -152,30 +157,90 @@ properFile=$workingPath'/../dbDriver.properties'
 ReadINIfile $properFile '[1]' 'tablesPhases'
 echo 'tablesPhases after invoked='$tablesPhases
 
-nodeName=SVT6 #$nodeName
-dbIp=9.37.16.2 #$dbIp
-port=50000 #$port
-alia=SVT6_DB #$alia
-usr=sctid #$usr
-pwd=may15pwd #$pwd
-dbInstance=SALECONN #$dbInstance
+#from env
+nodeName=$nodeName
+dbIp=$dbIp
+port=$port
+alia=$alia
+usr=$usr
+pwd=$pwd
+dbInstance=$dbInstance
+ourNodeName=$ourNodeName
+ourDbIp=$ourDbIp
+ourPort=$ourPort
+ourAlia=$ourAlia
+ourUsr=$ourUsr
+ourPwd=$ourPwd
+ourDbInstance=$ourDbInstance
+dbServerPort=$dbServerPort
+dbServerUser=$dbServerUser
+dbServerPwd=$dbServerPwd
+needUncataDbAlia=$needUncataDbAlia
+needUncataDbNode=$needUncataDbNode
 
-ourNodeName=ICP #$ourNodeName
-ourDbIp=9.32.165.190 #$ourDbIp
-ourPort=31372 #$ourPort
-ourAlia=ICP_DB #$ourAlia
-ourUsr=a1insctp #$ourUsr
-ourPwd=Aug18pwd #$ourPwd
-ourDbInstance=ICP_DB #$ourDbInstance
-dbServerPort=22 #$dbServerPort
-dbServerUser=a1insctp #$dbServerUser
-dbServerPwd=12345678 #$dbServerPwd
-needUncataDbAlia=0 #$needUncataDbAlia
-needUncataDbNode=0 #$needUncataDbNode
+if [ -z "$nodeName" ]; then
+    ReadINIfile $properFile '[1]' 'nodeName'
+fi
+if [ -z "$dbIp" ]; then
+    ReadINIfile $properFile '[1]' 'dbIp'
+fi
+if [ -z "$port" ]; then
+    ReadINIfile $properFile '[1]' 'port'
+fi
+if [ -z "$alia" ]; then
+    ReadINIfile $properFile '[1]' 'alia'
+fi
+if [ -z "$usr" ]; then
+    ReadINIfile $properFile '[1]' 'usr'
+fi
+if [ -z "$pwd" ]; then
+    ReadINIfile $properFile '[1]' 'pwd'
+fi
+if [ -z "$dbInstance" ]; then
+    ReadINIfile $properFile '[1]' 'dbInstance'
+fi
+if [ -z "$ourNodeName" ]; then
+    ReadINIfile $properFile '[1]' 'ourNodeName'
+fi
+if [ -z "$ourDbIp" ]; then
+    ReadINIfile $properFile '[1]' 'ourDbIp'
+fi
+if [ -z "$ourPort" ]; then
+    ReadINIfile $properFile '[1]' 'ourPort'
+fi
+if [ -z "$ourAlia" ]; then
+    ReadINIfile $properFile '[1]' 'ourAlia'
+fi
+if [ -z "$ourUsr" ]; then
+    ReadINIfile $properFile '[1]' 'ourUsr'
+fi
+if [ -z "$ourPwd" ]; then
+    ReadINIfile $properFile '[1]' 'ourPwd'
+fi
+if [ -z "$ourDbInstance" ]; then
+    ReadINIfile $properFile '[1]' 'ourDbInstance'
+fi
+if [ -z "$dbServerPort" ]; then
+    ReadINIfile $properFile '[1]' 'dbServerPort'
+fi
+if [ -z "$dbServerUser" ]; then
+    ReadINIfile $properFile '[1]' 'dbServerUser'
+fi
+if [ -z "$dbServerPwd" ]; then
+    ReadINIfile $properFile '[1]' 'dbServerPwd'
+fi
+if [ -z "$needUncataDbAlia" ]; then
+    ReadINIfile $properFile '[1]' 'needUncataDbAlia'
+fi
+if [ -z "$needUncataDbNode" ]; then
+    ReadINIfile $properFile '[1]' 'needUncataDbNode'
+fi
+
 
 if [[ $tablesPhases == 0 ]]; then
     user_account='USER_ACCOUNT_REL1'
     user_product='USER_PRODUCT_REL1'
+    product_image='PRODUCTS_IMAGE1'
 
     containStaging='RULES_DATA_STAGING'
     containData='RULES_DATA'
@@ -185,6 +250,7 @@ fi
 if [[ $tablesPhases == 1 ]]; then
     user_account='USER_ACCOUNT_REL2'
     user_product='USER_PRODUCT_REL2'
+    product_image='PRODUCTS_IMAGE2'
 
     containStaging='RULES_DATA_SS'
     containData='RULES_DATA_STAGING'
@@ -194,6 +260,7 @@ fi
 if [[ $tablesPhases == 2 ]]; then
     user_account='USER_ACCOUNT_REL3'
     user_product='USER_PRODUCT_REL3'
+    product_image='PRODUCTS_IMAGE3'
 
     containStaging='RULES_DATA'
     containData='RULES_DATA_SS'
@@ -235,6 +302,7 @@ uncataOurDBAlia=`printf "$uncataDBAlia" $ourAlia`
 uncataOurNode=`printf "$uncataNode" $ourNodeName`
 connOuterSpaceDb=`printf "$connOuterSpaceDb" $ourDbInstance $ourUsr $ourPwd`
 
+#invoke function
 generateTmpSql
 
 # function generateExecCommand
@@ -251,8 +319,6 @@ smrImpFail="db2 -tvf "${sqlPath}"tmp_smrImpFailed.sql > "${logsPath}"smrImpFaile
 # dbExecCommand getProduct.sql $logsPath getProduct.log
 productsData="db2 -tvf "${sqlPath}"tmp_getProduct.sql > "${logsPath}"getProduct.log"
 
-usrPrdctRelData="db2 -tvf "${sqlPath}"tmp_getUsrPrdctRel.sql > "${logsPath}"getUsrPrdctRel.log" #new
-usrAccountRelData="db2 -tvf "${sqlPath}"tmp_getUsrAccountRel.sql > "${logsPath}"getUsrAccountRel.log" #new
 
 # dbExecCommand impPrductFailed.sql $logsPath impPrductFailed.log
 impPrdctFaild="db2 -tvf "${sqlPath}"tmp_impPrductFailed.sql > "${logsPath}"impPrductFailed.log"
@@ -261,11 +327,22 @@ impSourceCSVLocal="db2 -tvf "${sqlPath}"tmp_impSmr2CmrPrdct.sql"
 # dbExecCommand impProduct.sql
 importProductLocal="db2 -tvf "${sqlPath}"tmp_impProduct.sql"
 
+usrPrdctRelData="db2 -tvf "${sqlPath}"tmp_getUsrPrdctRel.sql > "${logsPath}"getUsrPrdctRel.log" #new
+usrAccountRelData="db2 -tvf "${sqlPath}"tmp_getUsrAccountRel.sql > "${logsPath}"getUsrAccountRel.log" #new
+
 impUsrAccountRel="db2 -tvf "${sqlPath}"tmp_impUsrAccountRel.sql" #new
 impUsrPrdctRel="db2 -tvf "${sqlPath}"tmp_impUsrPrdctRel.sql" #new
 
 impUsrAccountFail="db2 -tvf "${sqlPath}"tmp_impUsrAccountFailed.sql > "${logsPath}"impUsrAccountFailed.log"
 impUsrPrdctFail="db2 -tvf "${sqlPath}"tmp_impUsrPrdctFailed.sql > "${logsPath}"impUsrPrdctFailed.log"
+
+####
+getDcCmrCcms="db2 -tvf "${sqlPath}"tmp_getDcCmrCcms.sql > "${logsPath}"getDcCmrCcms.log" #new
+impDcCmrCcms="db2 -tvf "${sqlPath}"tmp_getDcCmrCcms.sql" #new
+impdcCmrCcmsFail="db2 -tvf "${sqlPath}"tmp_impUsrAccountFailed.sql > "${logsPath}"impUsrAccountFailed.log"
+
+
+
 
 $conn2RemoteDb
 if [[ $? -ne 0 ]]; then

@@ -1,1 +1,1 @@
-truncate table CMRDC.PRODUCTS_IMAGE IMMEDIATE;
+truncate table CMRDC.${product_image} IMMEDIATE;
