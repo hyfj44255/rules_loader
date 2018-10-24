@@ -1,1 +1,0 @@
-truncate table CMRDC.DC_CMR_CCMS IMMEDIATE;

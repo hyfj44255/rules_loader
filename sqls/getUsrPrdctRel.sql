@@ -14,7 +14,7 @@ INNER JOIN SCTID.USERS U ON
 INNER JOIN SCTID.ACCOUNTS_USERS AU ON --user client team  accountid mutil user
   U.ID = AU.USER_ID
 INNER JOIN sme.ACCOUNTS A ON
-  AU.ACCOUNT_ID = A.ID AND A.ccms_level = 'S'
+  AU.ACCOUNT_ID = A.ID --AND A.ccms_level = 'S'
 --LEFT JOIN IBM_USERS_PRODUCTS UP ON --user sell product
 --  U.ID = up.USER_ID
 left join SCTID.accounts_cstm AS ac ON
@@ -35,4 +35,5 @@ AND  ac.mpp_num IS not NULL
 AND ac.mpp_num <>''
 AND ac.landed_country <>''
 )
+fetch first 100 rows only
 WITH ur;

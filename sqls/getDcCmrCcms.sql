@@ -2,8 +2,15 @@ export to "${workingDir}/../csvs/dcCmrCcms.csv" of del messages "${workingDir}/.
 SELECT
 	A2.CCMS_ID AS dc_ccms,
 	A1.CCMS_ID AS cmr_ccms,
-	ac.mpp_num
-FROM
+	ac.mpp_num,
+	Ac.landed_country
+--    CASE
+--    WHEN LENGTH(
+--      TRIM( Ac.landed_country )
+--    )= 0 THEN 'WW'
+--    ELSE Ac.landed_country
+--    END AS Country
+  FROM
 	(
 		SELECT
 			in_A1.CCMS_ID,
@@ -33,5 +40,6 @@ INNER JOIN(
 	) AU ON
 	AU.ACCOUNT_ID = A1.ID --LEFT JOIN
 LEFT JOIN SCTID.accounts_cstm ac ON
-	a1.id = ac.id_c
+	a1.id = ac.id_c and length(trim(ac.mpp_num)) <>0
+fetch first 100 rows only
 WITH ur;

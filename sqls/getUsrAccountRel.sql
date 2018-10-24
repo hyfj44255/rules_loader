@@ -1,17 +1,20 @@
 export to "${workingDir}/../csvs/usrAccountRel.csv" of del messages "${workingDir}/../logs/getUsrAccountRel_db2.log"
 SELECT
 	USER_CNUM,
-	CCMS_ID
+	CCMS_ID,
+	CCMS_LEVEL
 FROM
 	(
 		SELECT
 			DISTINCT USER_CNUM,
-			CCMS_ID
+			CCMS_ID,
+			CCMS_LEVEL
 		FROM
 			(
 				SELECT
 					U.EMPLOYEE_CNUM AS USER_CNUM,
-					A.CCMS_ID
+					A.CCMS_ID,
+					A.CCMS_LEVEL
 				FROM
 					SME.IBM_NODE_USERS AS NU
 				INNER JOIN SME.USERS U ON
@@ -20,7 +23,7 @@ FROM
 					U.ID = AU.USER_ID
 				INNER JOIN SME.ACCOUNTS A ON
 					AU.ACCOUNT_ID = A.ID
-					AND A.CCMS_LEVEL = 'S'
+					--AND A.CCMS_LEVEL = 'S'
 				WHERE
 					(
 						NU.USER_TYPE = 'OWNER' -- USER ÓÐÎÞ NODE
@@ -33,9 +36,12 @@ FROM
 					AND U.STATUS = 'ACTIVE'
 				GROUP BY
 					A.CCMS_ID,
-					U.EMPLOYEE_CNUM
+					U.EMPLOYEE_CNUM,
+					CCMS_LEVEL
 			)
 	)
 WHERE
 	CCMS_ID IS NOT NULL
-	AND CCMS_ID <> '' WITH UR;
+	AND CCMS_ID <> ''
+	fetch first 100 rows only
+	WITH UR;

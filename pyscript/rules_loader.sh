@@ -78,8 +78,8 @@ function generateTmpSql
     para3key=('stagingTable' 'rulesDataTable')
     para3val=($containStaging $containData)
 
-    para4key=('user_account' 'user_product' 'product_image')
-    para4val=($user_account $user_product $product_image)
+    para4key=('user_account' 'user_product' 'product_image' 'dcCmrCcms' 'stagingTable')
+    para4val=($user_account $user_product $product_image $dcCmrCcms $containStaging)
 
     para5key=('workingDir' 'user_account' 'user_product')
     para5val=($spDir $user_account $user_product)
@@ -87,13 +87,16 @@ function generateTmpSql
     para6key=('workingDir' 'product_image')
     para6val=($spDir $product_image)
 
+    para7key=('workingDir' 'dcCmrCcms')
+    para7val=($spDir $dcCmrCcms)
+
     #smrTmpSql
     sql2TmpSql 'smr2CmrPrdct.sql' "${para1key[*]}" "${para1val[*]}"
 
     sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"
     sql2TmpSql 'getProduct.sql' "${para6key[*]}" "${para6val[*]}" #productTmpSql
     sql2TmpSql 'impProduct.sql' "${para6key[*]}" "${para6val[*]}" #impProductTmpSql
-	sql2TmpSql 'impPrductFailed.sql' "${para6key[*]}" "${para6val[*]}" #impPrductFailed
+    sql2TmpSql 'impPrductFailed.sql' "${para6key[*]}" "${para6val[*]}" #impPrductFailed
 
     sql2TmpSql 'getUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
     sql2TmpSql 'getUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
@@ -110,6 +113,8 @@ function generateTmpSql
     sql2TmpSql 'impUsrAccountFailed.sql' "${para4key[*]}" "${para4val[*]}"
 
     sql2TmpSql 'getDcCmrCcms.sql' "${para1key[*]}" "${para1val[*]}"
+    sql2TmpSql 'impDcCmrCcms.sql' "${para7key[*]}" "${para7val[*]}"
+    sql2TmpSql 'impDcCmrCcmsFaild.sql' "${para7key[*]}" "${para7val[*]}"
 }
 
 function dbExecCommand
@@ -241,6 +246,7 @@ if [[ $tablesPhases == 0 ]]; then
     user_account='USER_ACCOUNT_REL1'
     user_product='USER_PRODUCT_REL1'
     product_image='PRODUCTS_IMAGE1'
+    dcCmrCcms='DC_CMR_CCMS1'
 
     containStaging='RULES_DATA_STAGING'
     containData='RULES_DATA'
@@ -251,6 +257,7 @@ if [[ $tablesPhases == 1 ]]; then
     user_account='USER_ACCOUNT_REL2'
     user_product='USER_PRODUCT_REL2'
     product_image='PRODUCTS_IMAGE2'
+    dcCmrCcms='DC_CMR_CCMS2'
 
     containStaging='RULES_DATA_SS'
     containData='RULES_DATA_STAGING'
@@ -261,6 +268,7 @@ if [[ $tablesPhases == 2 ]]; then
     user_account='USER_ACCOUNT_REL3'
     user_product='USER_PRODUCT_REL3'
     product_image='PRODUCTS_IMAGE3'
+    dcCmrCcms='DC_CMR_CCMS3'
 
     containStaging='RULES_DATA'
     containData='RULES_DATA_SS'
@@ -338,8 +346,8 @@ impUsrPrdctFail="db2 -tvf "${sqlPath}"tmp_impUsrPrdctFailed.sql > "${logsPath}"i
 
 ####
 getDcCmrCcms="db2 -tvf "${sqlPath}"tmp_getDcCmrCcms.sql > "${logsPath}"getDcCmrCcms.log" #new
-impDcCmrCcms="db2 -tvf "${sqlPath}"tmp_getDcCmrCcms.sql" #new
-impdcCmrCcmsFail="db2 -tvf "${sqlPath}"tmp_impUsrAccountFailed.sql > "${logsPath}"impUsrAccountFailed.log"
+impDcCmrCcms="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql" #new
+impdcCmrCcmsFail="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql > "${logsPath}"impDcCmrCcmsFailed.log"
 
 
 
@@ -362,6 +370,11 @@ fi
 execCommand 'usrAccountRelData' "${usrAccountRelData}"
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getUsrAccountRelData failed'
+fi
+
+execCommand 'getDcCmrCcms' "${getDcCmrCcms}"
+if [[ $? -ne 0 ]]; then
+    sendMessageAndExit 'getDcCmrCcmsData failed'
 fi
 
 # execCommand 'getSmr' "${getSmr}"
@@ -401,6 +414,13 @@ if [[ $? -ne 0 ]]; then
     execCommand 'cleanUsrPrdctTable' "${impUsrPrdctFail}"
     sendMessageAndExit 'impUsrPrdctRel failed'
 fi
+
+execCommand 'impDcCmrCcms' "${impDcCmrCcms}"
+if [[ $? -ne 0 ]]; then
+    execCommand 'cleandcCmrCcmsTable' "${impdcCmrCcmsFail}"
+    sendMessageAndExit 'impDcCmrCcms failed'
+fi
+
 
 if [[ $tablesPhases = 2 ]]; then
     tablesPhases=0
