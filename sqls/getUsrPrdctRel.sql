@@ -1,4 +1,5 @@
-export to "${workingDir}/../csvs/usrPrdctRel.csv" of del messages "${workingDir}/../logs/getUsrPrdctRel_db2.log"
+--export to "${workingDir}/../csvs/usrPrdctRel.csv" of del messages "${workingDir}/../logs/getUsrPrdctRel_db2.log"
+insert into CMRDC.${user_product} (USER_CNUM,PRODUCT_ID,PRODUCT_LEVEL)
 SELECT
 (SELECT EMPLOYEE_CNUM FROM SCTID.USERS WHERE ID=user_ID AND DELETED=0) AS user_CNUM,
 PRODUCT_ID AS PRODUCT_ID,

@@ -94,12 +94,12 @@ function generateTmpSql
     sql2TmpSql 'smr2CmrPrdct.sql' "${para1key[*]}" "${para1val[*]}"
 
     sql2TmpSql 'impUsrPrdctFailed.sql' "${para4key[*]}" "${para4val[*]}"
-    sql2TmpSql 'getProduct.sql' "${para6key[*]}" "${para6val[*]}" #productTmpSql
+    sql2TmpSql 'getProduct.sql' "${para4key[*]}" "${para4val[*]}" #productTmpSql
     sql2TmpSql 'impProduct.sql' "${para6key[*]}" "${para6val[*]}" #impProductTmpSql
     sql2TmpSql 'impPrductFailed.sql' "${para6key[*]}" "${para6val[*]}" #impPrductFailed
 
-    sql2TmpSql 'getUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
-    sql2TmpSql 'getUsrPrdctRel.sql' "${para5key[*]}" "${para5val[*]}" #new
+    sql2TmpSql 'getUsrAccountRel.sql' "${para4key[*]}" "${para4val[*]}" #new
+    sql2TmpSql 'getUsrPrdctRel.sql' "${para4key[*]}" "${para4val[*]}" #new
 
 
     sql2TmpSql 'impUsrAccountRel.sql' "${para5key[*]}" "${para5val[*]}" #new
@@ -112,9 +112,9 @@ function generateTmpSql
 
     sql2TmpSql 'impUsrAccountFailed.sql' "${para4key[*]}" "${para4val[*]}"
 
-    sql2TmpSql 'getDcCmrCcms.sql' "${para1key[*]}" "${para1val[*]}"
+    sql2TmpSql 'getDcCmrCcms.sql' "${para4key[*]}" "${para4val[*]}"
     sql2TmpSql 'impDcCmrCcms.sql' "${para7key[*]}" "${para7val[*]}"
-    sql2TmpSql 'impDcCmrCcmsFaild.sql' "${para7key[*]}" "${para7val[*]}"
+    sql2TmpSql 'impDcCmrCcmsFailed.sql' "${para7key[*]}" "${para7val[*]}"
 }
 
 function dbExecCommand
@@ -350,8 +350,54 @@ impDcCmrCcms="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql" #new
 impdcCmrCcmsFail="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql > "${logsPath}"impDcCmrCcmsFailed.log"
 
 
+function mix_tables
+{
+    $conn2OurDb2
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'conn2OurDb2 failed'
+    fi
+
+    execCommand 'makeSpace' "${makeSpace}"
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'makeSpace failed'
+    fi
+
+    execCommand 'productsData' "${productsData}"
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'getProductsData failed'
+    fi
+
+    execCommand 'usrPrdctRelData' "${usrPrdctRelData}"
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'getUsrPrdctRelData failed'
+    fi
+
+    execCommand 'usrAccountRelData' "${usrAccountRelData}"
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'getUsrAccountRelData failed'
+    fi
+
+    execCommand 'getDcCmrCcms' "${getDcCmrCcms}"
+    if [[ $? -ne 0 ]]; then
+        sendMessageAndExit 'getDcCmrCcmsData failed'
+    fi
 
 
+
+    if [[ $tablesPhases = 2 ]]; then
+        tablesPhases=0
+    else
+        tablesPhases=`expr $tablesPhases + 1`
+    fi
+    echo 'after add='$tablesPhases
+    WriteINIfile $properFile '[1]' 'tablesPhases' $tablesPhases
+
+    ReadINIfile $properFile '[1]' 'tablesPhases'
+    echo 'tablesPhases after invoked='$tablesPhases
+
+}
+#mix_tables
+exit 0
 $conn2RemoteDb
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'conn2SCdb failed'
@@ -420,19 +466,6 @@ if [[ $? -ne 0 ]]; then
     execCommand 'cleandcCmrCcmsTable' "${impdcCmrCcmsFail}"
     sendMessageAndExit 'impDcCmrCcms failed'
 fi
-
-
-if [[ $tablesPhases = 2 ]]; then
-    tablesPhases=0
-else
-    tablesPhases=`expr $tablesPhases + 1`
-fi
-echo 'after add='$tablesPhases
-WriteINIfile $properFile '[1]' 'tablesPhases' $tablesPhases
-
-ReadINIfile $properFile '[1]' 'tablesPhases'
-echo 'tablesPhases after invoked='$tablesPhases
-
 #request_url='http://9.115.158.70:5000/v1/lineItemTeam/ '
 #basic_auth=`echo -n 'admin:asdf' | base64`
 #request_post='curl --request POST --url '$request_url

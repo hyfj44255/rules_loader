@@ -1,4 +1,5 @@
-export to "${workingDir}/../csvs/usrAccountRel.csv" of del messages "${workingDir}/../logs/getUsrAccountRel_db2.log"
+--export to "${workingDir}/../csvs/usrAccountRel.csv" of del messages "${workingDir}/../logs/getUsrAccountRel_db2.log"
+INSERT INTO CMRDC.${user_account} (USER_CNUM, CCMS_ID, CCMS_LEVEL)
 SELECT
 	USER_CNUM,
 	CCMS_ID,

@@ -1,4 +1,5 @@
-export to "${workingDir}/../csvs/dcCmrCcms.csv" of del messages "${workingDir}/../logs/getDcCmrCcms_db2.log"
+--export to "${workingDir}/../csvs/dcCmrCcms.csv" of del messages "${workingDir}/../logs/getDcCmrCcms_db2.log"
+insert into CMRDC.${dcCmrCcms} (DC_CCMS, CMR_CCMS, MPP_NUM, COUNTRY)
 SELECT
 	A2.CCMS_ID AS dc_ccms,
 	A1.CCMS_ID AS cmr_ccms,

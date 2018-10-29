@@ -1,6 +1,7 @@
-export to "${workingDir}/../csvs/productsData.csv" of del messages "${workingDir}/../logs/getProduct_db2.log"
+--export to "${workingDir}/../csvs/productsData.csv" of del messages "${workingDir}/../logs/getProduct_db2.log"
+insert into CMRDC.${product_image}
+(name,lev30,lev20,lev17,lev15,lev10)
 SELECT
-  --sctid.newguid id_pk,
   t1.NAME,
   t1.id AS lev30,
   t2.id AS lev20,
