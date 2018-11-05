@@ -4,3 +4,4 @@ rsakey*
 tmp_*.sql
 *.properties
 **/__pycache__
+*.stackdump

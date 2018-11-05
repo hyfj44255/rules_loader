@@ -114,7 +114,7 @@ function generateTmpSql
 
     sql2TmpSql 'getDcCmrCcms.sql' "${para1key[*]}" "${para1val[*]}"
     sql2TmpSql 'impDcCmrCcms.sql' "${para7key[*]}" "${para7val[*]}"
-    sql2TmpSql 'impDcCmrCcmsFaild.sql' "${para7key[*]}" "${para7val[*]}"
+    sql2TmpSql 'impDcCmrCcmsFailed.sql' "${para7key[*]}" "${para7val[*]}"
 }
 
 function dbExecCommand
@@ -350,6 +350,22 @@ impDcCmrCcms="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql" #new
 impdcCmrCcmsFail="db2 -tvf "${sqlPath}"tmp_impDcCmrCcms.sql > "${logsPath}"impDcCmrCcmsFailed.log"
 
 
+function numOfDataExported
+{
+    logFile=$1
+    propKey=$2
+    properFile=$3
+    linesOfData=`tail -n 3  $logFile | sed '/^$/d' | sed 's/[^0-9]//g'`
+    echo 'linesOfData:'$linesOfData
+    echo 'propKey:'$propKey
+    WriteINIfile $properFile '[1]' $propKey $linesOfData
+}
+
+function sendFatalFlaw2Slack
+{
+    message=$1
+    curl -X POST -H 'Content-type: application/json' --data '{"text":"Hello, World!"}' https://hooks.slack.com/services/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
+}
 
 
 $conn2RemoteDb
@@ -358,23 +374,32 @@ if [[ $? -ne 0 ]]; then
 fi
 
 execCommand 'productsData' "${productsData}"
+
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getProductsData failed'
+else
+    numOfDataExported ${logsPath}'getProduct.log' 'products_image' $properFile
 fi
 
 execCommand 'usrPrdctRelData' "${usrPrdctRelData}"
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getUsrPrdctRelData failed'
+else
+    numOfDataExported ${logsPath}'getUsrPrdctRel.log' 'user_product_rel' $properFile
 fi
 
 execCommand 'usrAccountRelData' "${usrAccountRelData}"
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getUsrAccountRelData failed'
+else
+    numOfDataExported ${logsPath}'getUsrAccountRel.log' 'user_account_rel' $properFile
 fi
 
 execCommand 'getDcCmrCcms' "${getDcCmrCcms}"
 if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'getDcCmrCcmsData failed'
+else
+    numOfDataExported ${logsPath}'getDcCmrCcms.log' 'dc_cmr_ccms' $properFile
 fi
 
 # execCommand 'getSmr' "${getSmr}"
@@ -403,12 +428,6 @@ if [[ $? -ne 0 ]]; then
     sendMessageAndExit 'importProductLocal failed'
 fi
 
-execCommand 'impUsrAccountRel' "${impUsrAccountRel}"
-if [[ $? -ne 0 ]]; then
-    execCommand 'cleanUsrAccountTable' "${impUsrAccountFail}"
-    sendMessageAndExit 'impUsrAccountRel failed'
-fi
-
 execCommand 'impUsrPrdctRel' "${impUsrPrdctRel}"
 if [[ $? -ne 0 ]]; then
     execCommand 'cleanUsrPrdctTable' "${impUsrPrdctFail}"
@@ -419,6 +438,12 @@ execCommand 'impDcCmrCcms' "${impDcCmrCcms}"
 if [[ $? -ne 0 ]]; then
     execCommand 'cleandcCmrCcmsTable' "${impdcCmrCcmsFail}"
     sendMessageAndExit 'impDcCmrCcms failed'
+fi
+
+execCommand 'impUsrAccountRel' "${impUsrAccountRel}"
+if [[ $? -ne 0 ]]; then
+    execCommand 'cleanUsrAccountTable' "${impUsrAccountFail}"
+    sendMessageAndExit 'impUsrAccountRel failed'
 fi
 
 
